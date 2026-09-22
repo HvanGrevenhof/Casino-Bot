@@ -2,6 +2,7 @@
 from datetime import date
 from games.roulette import play_roulette
 from games.fruitmachine import play_fruitmachine
+from games.blackjack import play_blackjack
 
 # Variabelen Los
 ticketprijs = 25.00
@@ -82,6 +83,7 @@ def show_games_menu():
     ---------------------
     1.Fruitmachine
     2.Roulette
+    3.Blackjack
     0.Terug
     """)
     game_choice = input("Kies een Spel:  ")
@@ -121,6 +123,9 @@ def main():
 
                 elif game_choice == "2":
                     balance = play_roulette(balance)
+
+                elif game_choice == "3":
+                    balance = play_blackjack(balance)
                 else:
                     print("Ongeldige keuze.")
 
