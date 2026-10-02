@@ -1,8 +1,8 @@
 #Imports
-from datetime import date
 from games.roulette import play_roulette
 from games.fruitmachine import play_fruitmachine
 from games.blackjack import play_blackjack
+import profiles
 
 # Variabelen Los
 ticketprijs = 25.00
@@ -10,42 +10,6 @@ gok_belasting = 10.00
 vaste_kosten = ticketprijs + gok_belasting
 
 # Def Statements
-def calculate_age(birthdate):
-    day, month, year = map(int, birthdate.split("-"))
-
-    today = date.today()
-
-    age = today.year - year
-
-    if (today.month, today.day) < (month, day):
-        age = age - 1
-
-    return age
-def check_age(birthdate):
-    age = calculate_age(birthdate)
-
-    if age < 18:
-        exit("Je bent te jong om het Casino te betreden.")
-
-    return birthdate
-
-def determine_salutation(name, gender):
-    if gender == "m":
-        return f"Heer {name}"
-    elif gender == "v":
-        return f"Mevrouw {name}"
-    else:
-        return f"X {name}"
-
-def show_welcome_message(startbudget, balance, salutation):
-    print(f"""
-Casino van Grevenhof
------------------------------
-Welkom, {salutation}
-
-Startbudget: € {startbudget:.2f}
-Saldo:       € {balance:.2f}
-""")
 
 def show_main_menu():
     print("""
@@ -65,18 +29,6 @@ def show_main_menu():
 def show_balance(balance):
     print(f"Huidig Saldo: € {balance:.2f}")
 
-def show_account(name, birthdate, salutation):
-    age = calculate_age(birthdate)
-
-    print(f"""
-    Accountgegevens
-    ----------------
-    Naam: {name}
-    Aanspreekvorm: {salutation}
-    Geboortedatum: {birthdate}
-    Leeftijd: {age}
-    """)
-
 def show_games_menu():
     print("""
     Casino van Grevenhof-Spellen!
@@ -90,22 +42,26 @@ def show_games_menu():
 
     return game_choice
 
+def show_account_menu():
+    print("""
+    Casino van Grevenhof - Account
+    -------------------------------
+    1. Toon alle accounts
+    2. Nieuw Account
+    3. Wissel account
+    4. Verwijder account
+    0. Terug
+    """)
+
+    account_choice = input("Kies een optie:  ")
+
+    return account_choice
+
 
 def main():
     print("Welkom Bij Casino van Grevenhof!")
 
-    name = input("Wat is uw naam ?  ")
-    birthdate = check_age(input("Wat is je Geboortedatum ? (dd-mm-yyyy)  "))
-    gender = input("Wat is uw geslacht ? M/V/anders").lower()
-
-    startbudget = float(input("Met Hoeveel geld wilt u beginnen ? € "))
-    if startbudget < vaste_kosten:
-        exit("Je hebt niet genoeg geld om de vaste kosten te betalen.")
-    balance = startbudget - vaste_kosten
-
-    salutations = determine_salutation(name, gender)
-
-    show_welcome_message(startbudget, balance, salutations)
+    profiles.initialize_player(vaste_kosten)
 
     while True :
         choice = show_main_menu()
@@ -119,20 +75,45 @@ def main():
                 if game_choice == "0":
                     break
                 elif game_choice == "1":
+                    balance = profiles.get_current_balance()
                     balance = play_fruitmachine(balance)
+                    profiles.update_current_balance(balance)
+                    profiles.register_played_game("fruitmachine")
 
                 elif game_choice == "2":
+                    balance = profiles.get_current_balance()
                     balance = play_roulette(balance)
+                    profiles.update_current_balance(balance)
+                    profiles.register_played_game("roulette")
 
                 elif game_choice == "3":
+                    balance = profiles.get_current_balance()
                     balance = play_blackjack(balance)
+                    profiles.update_current_balance(balance)
+                    profiles.register_played_game("blackjack")
                 else:
                     print("Ongeldige keuze.")
 
         elif choice == "2":
-            show_balance(balance)
+            show_balance(profiles.get_current_balance())
         elif choice == "3":
-            show_account(name, birthdate, salutations)
+            while True:
+                profiles.show_account()
+                account_choice = show_account_menu()
+
+                if account_choice == "0":
+                    break
+                elif account_choice == "1":
+                    profiles.show_all_players()
+                elif account_choice == "2":
+                    profiles.create_account(vaste_kosten)
+                elif account_choice == "3":
+                    profiles.switch_account()
+                elif account_choice == "4":
+                    profiles.remove_account()
+                else:
+                    print("Ongeldige keuze.")
+
         else:
             print("Ongeldige Keuze.")
 
