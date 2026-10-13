@@ -3,6 +3,11 @@ from games.roulette import play_roulette
 from games.fruitmachine import play_fruitmachine
 from games.blackjack import play_blackjack
 import profiles
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+console = Console()
 
 # Variabelen Los
 ticketprijs = 25.00
@@ -12,54 +17,84 @@ vaste_kosten = ticketprijs + gok_belasting
 # Def Statements
 
 def show_main_menu():
-    print("""
-    Casino van Grevenhof - Hoofdmenu
-    
-    ---------------------------------
-    1. Spellen
-    2. Saldo
-    3. Account
-    0. Stop
-    """)
+    table = Table(expand=True)
+
+    table.add_column("Optie")
+    table.add_column("Actie")
+
+    table.add_row("1", "Spellen")
+    table.add_row("2", "Saldo")
+    table.add_row("3", "Account")
+    table.add_row("0", "Stop")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Hoofdmenu"
+        )
+    )
 
     choice = input("Kies een Optie: ")
 
     return choice
 
 def show_balance(balance):
-    print(f"Huidig Saldo: € {balance:.2f}")
+    console.print(
+        Panel(
+            f"Huidig saldo: € {balance:.2f}",
+            title="Casino van Grevenhof - Saldo"
+        )
+    )
 
 def show_games_menu():
-    print("""
-    Casino van Grevenhof-Spellen!
-    ---------------------
-    1.Fruitmachine
-    2.Roulette
-    3.Blackjack
-    0.Terug
-    """)
+    table = Table(expand=True)
+
+    table.add_column("Optie")
+    table.add_column("Spel")
+
+    table.add_row("1", "Fruitmachine")
+    table.add_row("2", "Roulette")
+    table.add_row("3", "Blackjack")
+    table.add_row("0", "Terug")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Spellen"
+        )
+    )
+
+
     game_choice = input("Kies een Spel:  ")
 
     return game_choice
 
 def show_account_menu():
-    print("""
-    Casino van Grevenhof - Account
-    -------------------------------
-    1. Toon alle accounts
-    2. Nieuw Account
-    3. Wissel account
-    4. Verwijder account
-    0. Terug
-    """)
+    table = Table(expand=True)
 
-    account_choice = input("Kies een optie:  ")
+    table.add_column("Optie")
+    table.add_column("Actie")
+
+    table.add_row("1", "Toon alle accounts")
+    table.add_row("2", "Nieuw Account")
+    table.add_row("3", "Wissel Account")
+    table.add_row("4", "Verwijder Account")
+    table.add_row("0", "Terug")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Account"
+        )
+    )
+
+    account_choice = input("Kies een Optie:  ")
 
     return account_choice
 
 
 def main():
-    print("Welkom Bij Casino van Grevenhof!")
+    console.print("Welkom Bij Casino van Grevenhof!")
 
     profiles.initialize_player(vaste_kosten)
 
@@ -92,7 +127,7 @@ def main():
                     profiles.update_current_balance(balance)
                     profiles.register_played_game("blackjack")
                 else:
-                    print("Ongeldige keuze.")
+                    console.print("Ongeldige keuze.")
 
         elif choice == "2":
             show_balance(profiles.get_current_balance())
@@ -112,10 +147,10 @@ def main():
                 elif account_choice == "4":
                     profiles.remove_account()
                 else:
-                    print("Ongeldige keuze.")
+                    console.print("Ongeldige keuze.")
 
         else:
-            print("Ongeldige Keuze.")
+            console.print("Ongeldige Keuze.")
 
 main()
 

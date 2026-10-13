@@ -1,4 +1,10 @@
-from datetime import date
+from datetime import date, datetime
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+console = Console()
+
 players = {
     "Jan": {
         "naam": "Jan",
@@ -27,13 +33,16 @@ current_player = None
 MIN_AGE = 18
 
 def calculate_age(birthdate):
-    day, month, year = map(int, birthdate.split("-"))
+    birthdate_value = datetime.strptime(birthdate, "%d-%m-%Y").date()
 
-    today = date.today()
+    today_value = date.today()
 
-    age = today.year - year
+    if birthdate_value > today_value:
+        raise ValueError("De geboortedatum mag niet in de toekomst liggen.")
 
-    if (today.month, today.day) < (month, day):
+    age = today_value.year - birthdate_value.year
+
+    if (today_value.month, today_value.day) < (birthdate_value.month, birthdate_value.day):
         age = age - 1
 
     return age
@@ -62,7 +71,7 @@ def create_account(total_cost, name=None):
         name = input("Naam voor het nieuwe account:  ").capitalize()
 
         if name in players:
-            print("dit account bestaat al, Gebruik wissel account om het te openen.")
+            console.print("dit account bestaat al, Gebruik wissel account om het te openen.")
             return
 
     birthdate = input("Wat is uw geboortedatum ? (dd-mm-yyyy) ")
@@ -73,7 +82,7 @@ def create_account(total_cost, name=None):
     start_balance = float(input("Met hoeveel geld wilt u beginnen ? € "))
 
     if start_balance < total_cost:
-        print("Je hebt niet genoeg geld om de kosten te betallen")
+        console.print("Je hebt niet genoeg geld om de kosten te betallen")
         return
 
     balance = start_balance - total_cost
@@ -102,13 +111,16 @@ def initialize_player(total_cost):
         salutation = determine_salutation(current_player, profile["gender"])
         balance = profile["saldo"]
 
-        print(f"""
-Casino van Grevenhof
-----------------------
-Welkom terug, {salutation}
+        message = f"""welkom terug, {salutation}
 
-huidig saldo: € {balance:.2f}
-""")
+huidig saldo: €{balance:.2f}"""
+
+        console.print(
+            Panel(
+                message,
+                title="Casino van Grevenhof"
+            )
+        )
     else:
         create_account(total_cost, name)
 
@@ -119,16 +131,16 @@ huidig saldo: € {balance:.2f}
         balance = profile["saldo"]
         start_balance = balance + total_cost
         salutation = determine_salutation(current_player, profile["gender"])
-        print(f"""
-Casino van Grevenhof
-----------------------
-welkom {salutation}
-
-Startbudget: € {start_balance:.2f}
-Vaste kosten: € {total_cost:.2f}
-Saldo: € {balance:.2f}
-""")
-
+        message = f"""Welkom, {salutation}
+Startbudget: €{start_balance:.2f}
+Vaste kosten: €{total_cost:.2f}
+Saldo: {balance:.2f}"""
+        console.print(
+            Panel(
+                message,
+                title="Casino van Grevenhof"
+            )
+        )
 def get_current_balance():
     return players[current_player]["saldo"]
 
@@ -149,20 +161,35 @@ def register_played_game(game_name):
 def show_account():
     profile = players[current_player]
 
-    print(f"""
-Casino van Grevenhof - Account
---------------------------------
-Naam: {profile["naam"]}
-Saldo: {profile["saldo"]}
+    message = f"""Naam: {profile['naam']}
+Saldo: € {profile["saldo"]:.2f}
 Gespeelde spellen: {profile["gespeelde_spellen"]}
-Beschikbare spelers: {list(players.keys())}
-""")
+Beschikbare spelers: {list(players.keys())}"""
+
+    console.print(
+        Panel(
+            message,
+            title="Casino van Grevenhof - Account"
+        )
+    )
+
+
 
 def show_all_players():
-    print("Alle accounts:")
+    table = Table(expand=True)
+
+    table.add_column("Naam")
+    table.add_column("Saldo")
 
     for name, profile in players.items():
-        print(f"- {name}: saldo € {profile['saldo']:.2f}")
+        table.add_row(name, f"€ {profile['saldo']:.2f}")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Alle accounts"
+        )
+    )
 
 def switch_account():
     global current_player
@@ -170,10 +197,10 @@ def switch_account():
     name = input("Naar welk account wilt u wisselen ?  ").capitalize()
 
     if name not in players:
-        print("Dit account bestaat niet")
+        console.print("Dit account bestaat niet")
         return
     current_player = name
-    print(f"Gewisseld naar account: {current_player}")
+    console.print(f"Gewisseld naar account: {current_player}")
 
 def remove_account():
     global current_player
@@ -185,7 +212,7 @@ def remove_account():
         return
 
     if len(players) == 1:
-        print("Het Laatste Account kan niet verwijderd worden")
+        console.print("Het Laatste Account kan niet verwijderd worden")
         return
 
     del players[name]
@@ -193,7 +220,7 @@ def remove_account():
     if name == current_player:
         current_player = list(players.keys())[0]
 
-    print(f"Account {name} is verwijderd.")
+    console.print(f"Account {name} is verwijderd.")
 
 
 
