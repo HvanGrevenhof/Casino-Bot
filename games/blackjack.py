@@ -1,4 +1,8 @@
 import random
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
 
 SUITS = ["♠", "♥", "♦", "♣"]
 RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
@@ -22,7 +26,13 @@ def show_hand(label, hand, hide_card=False):
     else:
         visible_cards = hand
 
-    print(f"{label}: {' | '.join(visible_cards)}")
+    console.print(
+        Panel(
+            " | ".join(visible_cards),
+            title=label
+        )
+    )
+
 
 def calculate_card_value(card):
     rank = card[1:]
@@ -55,11 +65,11 @@ def ask_for_bet(balance):
         bet = float(input("Hoeveel wilt u inzetten € ? "))
 
         if bet <= 0:
-            print("Ongeldige inzet.")
+            console.print("Ongeldige inzet.")
             continue
 
         if bet > balance:
-            print("U heeft niet genoeg saldo.")
+            console.print("U heeft niet genoeg saldo.")
             continue
 
         return bet
@@ -67,7 +77,7 @@ def ask_for_bet(balance):
 
 def play_blackjack(balance):
     if balance <= 0:
-        print("Je hebt niet genoeg Saldo meer om te spelen.")
+        console.print("Je hebt niet genoeg Saldo meer om te spelen.")
         return balance
 
     bet = ask_for_bet(balance)
@@ -87,7 +97,7 @@ def play_blackjack(balance):
     show_hand("Jouw hand", player_hand)
     show_hand("Dealer hand", dealer_hand, True)
 
-    print("Jouw Totaal: ", calculate_hand_value(player_hand))
+    console.print("Jouw Totaal: ", calculate_hand_value(player_hand))
 
 
     while calculate_hand_value(player_hand) <21:
@@ -97,20 +107,25 @@ def play_blackjack(balance):
             break
 
         if choice != "hit":
-            print("Kies alleen 'Hit' of 'Stand',")
+            console.print("Kies alleen 'Hit' of 'Stand',")
             continue
 
         card = draw_card(deck, player_hand)
 
-        print(f"Je trekt: {card}")
+        console.print(f"Je trekt: {card}")
 
         show_hand("Jouw hand", player_hand)
 
-        print("Jouw Totaal: ", calculate_hand_value(player_hand))
+        console.print("Jouw Totaal: ", calculate_hand_value(player_hand))
 
         if calculate_hand_value(player_hand) > 21:
-            print("Je bent Bust! Dealer wint.")
-            print(f"Nieuw Saldo: € {balance:.2f}")
+            message = "Je bent Bust! de dealer wint."
+            console.print(
+                Panel(
+                    f"{message}\nNieuw Saldo: {balance:.2f}",
+                    title="Blackjack resultaat"
+                )
+            )
             return balance
 
     show_hand("Dealer hand", dealer_hand)
@@ -118,30 +133,35 @@ def play_blackjack(balance):
     while calculate_hand_value(dealer_hand) < 17:
         card =  draw_card(deck, dealer_hand)
 
-        print(f"Dealer trekt: {card}")
+        console.print(f"Dealer trekt: {card}")
         show_hand("Dealer hand", dealer_hand)
 
     player_total = calculate_hand_value(player_hand)
     dealer_total = calculate_hand_value(dealer_hand)
 
-    print("Jouw Totaal: ", player_total)
-    print("Dealer Totaal: ", dealer_total)
+    console.print("Jouw Totaal: ", player_total)
+    console.print("Dealer Totaal: ", dealer_total)
 
     if dealer_total > 21:
         balance = balance + (bet * 2)
-        print("Dealer is Bust, je Wint!")
+        message = "Dealer is Bust, je hebt Gewonnen!"
 
     elif player_total > dealer_total:
         balance = balance + (bet * 1.5)
-        print("Je hebt de hogere hand. Je hebt Gewonnen!")
+        message = "Je hebt de hogere hand!, Je hebt Gewonnen!"
 
     elif player_total == dealer_total:
         balance = balance + bet
-        print("Gelijkspel! U krijgt uw inzet terug")
+        message = "Gelijkspel!, je krijgt je inzet terug."
     else:
-        print("De Dealer Wint.")
+        message = "De Dealer wint."
 
-    print(f"Nieuw Saldo: € {balance:.2f}")
+    console.print(
+        Panel(
+            f"{message}\nNieuw saldo : {balance:.2f}",
+            title="Blackjack Resultaat"
+        )
+    )
 
     return balance
 
