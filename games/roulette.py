@@ -1,26 +1,41 @@
-#Optie scherm
-def show_roulette_options():
-    print("""
-Casino van Grevenhof - Roulette
--------------------------------
-1. Rood
-2. Zwart
-3. Even
-4. Oneven
-0. Stop
-""")
+from random import randint
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
-#checklijsten
+
+console = Console()
+
+def show_roulette_options():
+    table = Table(expand=True)
+
+    table.add_column("Optie")
+    table.add_column("Keuze")
+
+    table.add_row("1", "Rood")
+    table.add_row("2", "Zwart")
+    table.add_row("3", "Even")
+    table.add_row("4", "Oneven")
+    table.add_row("0", "Stop")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof -  Roulette"
+        )
+    )
+
+
 def ask_for_bet(balance):
     while True:
         stake = float(input("Hoeveel wil je inzetten ? €  "))
 
         if stake <= 0:
-            print("Ongeldige inzet.")
+            console.print("Ongeldige inzet.")
             continue
 
         if stake > balance:
-            print("Je hebt niet genoeg saldo.")
+            console.print("Je hebt niet genoeg saldo.")
             continue
         return stake
 
@@ -60,7 +75,6 @@ def determine_win(choice, color, odd_even):
 
 #keuze Menu
 def play_roulette(balance):
-    round_number = 1
     while True:
         show_roulette_options()
 
@@ -70,28 +84,40 @@ def play_roulette(balance):
             return balance
 
         if choice not in ["1", "2", "3", "4"]:
-            print("Ongeldige Keuze.")
+            console.print("Ongeldige Keuze.")
             continue
 
         stake = ask_for_bet(balance)
 
         balance = balance - stake
 
-        spin = (round_number * 7) % 37
-        print("De roulette landt op:", spin)
+        spin = randint(0, 36)
 
         color = determine_color(spin)
-        print("De kleur is: ", color)
 
         odd_even = determine_odd_even(spin)
 
         win = determine_win(choice, color, odd_even)
         if win:
             balance = balance + (stake * 2)
-            print(f"Je hebt Gewonnen! Je saldo is € {balance:.2f}")
+            message = f"""De roulette landt op: {spin}
+De kleur is :{color}
+Je hebt gewonnen ! 
+
+Nieuw Saldo : € {balance:.2f}"""
         else:
-            print(f"Je hebt verloren! Je saldo is € {balance:.2f}")
+            message = f"""De roulette landt op: {spin}
+De kleur is: {color}
+Je hebt Verloren !
+
+Nieuw Saldo: €{balance:.2f}"""
+
+        console.print(
+            Panel(
+                message,
+                title="Casino van Grevenhof - Roulette Resultaat"
+            )
+        )
 
 
-        round_number = round_number + 1
 
