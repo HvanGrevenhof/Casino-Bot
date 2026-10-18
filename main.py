@@ -3,6 +3,7 @@ from games.roulette import play_roulette
 from games.fruitmachine import play_fruitmachine
 from games.blackjack import play_blackjack
 import profiles
+from exchange import run_exchange
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -25,6 +26,7 @@ def show_main_menu():
     table.add_row("1", "Spellen")
     table.add_row("2", "Saldo")
     table.add_row("3", "Account")
+    table.add_row("4", "Valuta Wisselen")
     table.add_row("0", "Stop")
 
     console.print(
@@ -148,6 +150,13 @@ def main():
                     profiles.remove_account()
                 else:
                     console.print("Ongeldige keuze.")
+
+        elif choice == "4":
+            euro_amount = run_exchange()
+            if euro_amount is not None:
+                profiles.update_current_balance(
+                    profiles.get_current_balance() + euro_amount
+                )
 
         else:
             console.print("Ongeldige Keuze.")
