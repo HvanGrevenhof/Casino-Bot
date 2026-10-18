@@ -1,8 +1,14 @@
 #Imports
-from datetime import date
 from games.roulette import play_roulette
 from games.fruitmachine import play_fruitmachine
 from games.blackjack import play_blackjack
+import profiles
+from exchange import run_exchange
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+console = Console()
 
 # Variabelen Los
 ticketprijs = 25.00
@@ -10,102 +16,89 @@ gok_belasting = 10.00
 vaste_kosten = ticketprijs + gok_belasting
 
 # Def Statements
-def calculate_age(birthdate):
-    day, month, year = map(int, birthdate.split("-"))
-
-    today = date.today()
-
-    age = today.year - year
-
-    if (today.month, today.day) < (month, day):
-        age = age - 1
-
-    return age
-def check_age(birthdate):
-    age = calculate_age(birthdate)
-
-    if age < 18:
-        exit("Je bent te jong om het Casino te betreden.")
-
-    return birthdate
-
-def determine_salutation(name, gender):
-    if gender == "m":
-        return f"Heer {name}"
-    elif gender == "v":
-        return f"Mevrouw {name}"
-    else:
-        return f"X {name}"
-
-def show_welcome_message(startbudget, balance, salutation):
-    print(f"""
-Casino van Grevenhof
------------------------------
-Welkom, {salutation}
-
-Startbudget: € {startbudget:.2f}
-Saldo:       € {balance:.2f}
-""")
 
 def show_main_menu():
-    print("""
-    Casino van Grevenhof - Hoofdmenu
-    
-    ---------------------------------
-    1. Spellen
-    2. Saldo
-    3. Account
-    0. Stop
-    """)
+    table = Table(expand=True)
+
+    table.add_column("Optie")
+    table.add_column("Actie")
+
+    table.add_row("1", "Spellen")
+    table.add_row("2", "Saldo")
+    table.add_row("3", "Account")
+    table.add_row("4", "Valuta Wisselen")
+    table.add_row("0", "Stop")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Hoofdmenu"
+        )
+    )
 
     choice = input("Kies een Optie: ")
 
     return choice
 
 def show_balance(balance):
-    print(f"Huidig Saldo: € {balance:.2f}")
-
-def show_account(name, birthdate, salutation):
-    age = calculate_age(birthdate)
-
-    print(f"""
-    Accountgegevens
-    ----------------
-    Naam: {name}
-    Aanspreekvorm: {salutation}
-    Geboortedatum: {birthdate}
-    Leeftijd: {age}
-    """)
+    console.print(
+        Panel(
+            f"Huidig saldo: € {balance:.2f}",
+            title="Casino van Grevenhof - Saldo"
+        )
+    )
 
 def show_games_menu():
-    print("""
-    Casino van Grevenhof-Spellen!
-    ---------------------
-    1.Fruitmachine
-    2.Roulette
-    3.Blackjack
-    0.Terug
-    """)
+    table = Table(expand=True)
+
+    table.add_column("Optie")
+    table.add_column("Spel")
+
+    table.add_row("1", "Fruitmachine")
+    table.add_row("2", "Roulette")
+    table.add_row("3", "Blackjack")
+    table.add_row("0", "Terug")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Spellen"
+        )
+    )
+
+
     game_choice = input("Kies een Spel:  ")
 
     return game_choice
 
+def show_account_menu():
+    table = Table(expand=True)
+
+    table.add_column("Optie")
+    table.add_column("Actie")
+
+    table.add_row("1", "Toon alle accounts")
+    table.add_row("2", "Nieuw Account")
+    table.add_row("3", "Wissel Account")
+    table.add_row("4", "Verwijder Account")
+    table.add_row("0", "Terug")
+
+    console.print(
+        Panel.fit(
+            table,
+            title="Casino van Grevenhof - Account"
+        )
+    )
+
+    account_choice = input("Kies een Optie:  ")
+
+    return account_choice
+
 
 def main():
-    print("Welkom Bij Casino van Grevenhof!")
+    console.print("Welkom Bij Casino van Grevenhof!")
 
-    name = input("Wat is uw naam ?  ")
-    birthdate = check_age(input("Wat is je Geboortedatum ? (dd-mm-yyyy)  "))
-    gender = input("Wat is uw geslacht ? M/V/anders").lower()
-
-    startbudget = float(input("Met Hoeveel geld wilt u beginnen ? € "))
-    if startbudget < vaste_kosten:
-        exit("Je hebt niet genoeg geld om de vaste kosten te betalen.")
-    balance = startbudget - vaste_kosten
-
-    salutations = determine_salutation(name, gender)
-
-    show_welcome_message(startbudget, balance, salutations)
+    profiles.initialize_player(vaste_kosten)
 
     while True :
         choice = show_main_menu()
@@ -119,22 +112,54 @@ def main():
                 if game_choice == "0":
                     break
                 elif game_choice == "1":
+                    balance = profiles.get_current_balance()
                     balance = play_fruitmachine(balance)
+                    profiles.update_current_balance(balance)
+                    profiles.register_played_game("fruitmachine")
 
                 elif game_choice == "2":
+                    balance = profiles.get_current_balance()
                     balance = play_roulette(balance)
+                    profiles.update_current_balance(balance)
+                    profiles.register_played_game("roulette")
 
                 elif game_choice == "3":
+                    balance = profiles.get_current_balance()
                     balance = play_blackjack(balance)
+                    profiles.update_current_balance(balance)
+                    profiles.register_played_game("blackjack")
                 else:
-                    print("Ongeldige keuze.")
+                    console.print("Ongeldige keuze.")
 
         elif choice == "2":
-            show_balance(balance)
+            show_balance(profiles.get_current_balance())
         elif choice == "3":
-            show_account(name, birthdate, salutations)
+            while True:
+                profiles.show_account()
+                account_choice = show_account_menu()
+
+                if account_choice == "0":
+                    break
+                elif account_choice == "1":
+                    profiles.show_all_players()
+                elif account_choice == "2":
+                    profiles.create_account(vaste_kosten)
+                elif account_choice == "3":
+                    profiles.switch_account()
+                elif account_choice == "4":
+                    profiles.remove_account()
+                else:
+                    console.print("Ongeldige keuze.")
+
+        elif choice == "4":
+            euro_amount = run_exchange()
+            if euro_amount is not None:
+                profiles.update_current_balance(
+                    profiles.get_current_balance() + euro_amount
+                )
+
         else:
-            print("Ongeldige Keuze.")
+            console.print("Ongeldige Keuze.")
 
 main()
 
